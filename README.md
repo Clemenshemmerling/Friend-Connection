@@ -44,7 +44,7 @@ This project is composed of multiple services, including a PostgreSQL database, 
 
 ```bash
 git clone git@github.com:Clemenshemmerling/Friend-Connection.git
-cd tech-interview
+cd Friend-Connection
 ```
 
 ### Docker Compose:
