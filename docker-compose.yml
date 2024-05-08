@@ -1,0 +1,67 @@
+version: '3.8'
+services:
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: friendconnection
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile-backend
+    volumes:
+      - ./backend:/app
+      - ./backend/alembic:/app/alembic
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://user:password@db/friendconnection
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile-frontend
+    volumes:
+      - ./frontend:/usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: always
+
+  socket-server:
+    build:
+      context: ./socket-server
+      dockerfile: Dockerfile
+    volumes:
+      - ./socket-server:/app
+    ports:
+      - "3001:3001"
+    restart: always
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

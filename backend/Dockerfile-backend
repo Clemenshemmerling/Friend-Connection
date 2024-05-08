@@ -1,0 +1,25 @@
+# Use an official Python runtime as a parent image
+FROM python:3.8-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install any needed packages specified in requirements.txt
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the current directory contents into the container at /app
+COPY ./app .
+COPY entrypoint.sh ./
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
+
+# Make the shell script executable
+RUN chmod +x entrypoint.sh
+
+# Define environment variable
+ENV NAME World
+
+# Use the entrypoint script to start the services
+ENTRYPOINT ["./entrypoint.sh"]
