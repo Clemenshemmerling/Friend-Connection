@@ -117,11 +117,22 @@ async def get_requesters_for_received_friend_requests(user_id: int, db: Session 
     return requesters
 
 @router.post("/status/", response_model=StatusUpdateSchema, status_code=status.HTTP_201_CREATED)
-def post_status(update: StatusUpdateCreate, db: Session = Depends(get_db)):
+async def post_status(update: StatusUpdateCreate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == update.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.status = update.content
+    db.commit()
+
     new_status = StatusUpdate(user_id=update.user_id, content=update.content, timestamp=update.timestamp)
     db.add(new_status)
     db.commit()
-    db.refresh(new_status)
+
+    await manager.broadcast("update")
+    async with httpx.AsyncClient() as client:
+        await client.post('http://socket-server:3001/data', json={"message": "Update status"})
+
     return new_status
 
 @router.get("/status/", response_model=List[StatusUpdateSchema])

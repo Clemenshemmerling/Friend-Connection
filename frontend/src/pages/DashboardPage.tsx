@@ -17,6 +17,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout }) => {
   const [friends, setFriends] = useState([]);
   const [users, setUsers] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
+  const [userStatus, setUserStatus] = useState(user.status);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const ws = useRef<WebSocket | null>(null);
 
@@ -116,9 +117,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout }) => {
 
   const handleBlockUser = async (userId: Number) => {
     await fetch(`http://localhost:8000/block-user/${userId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
     fetchData();
@@ -147,6 +148,24 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout }) => {
     }
   };
 
+  const handleChangeStatus = async (newStatus: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/status/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, content: newStatus }),
+      });
+      if (response.ok) {
+        setUserStatus(newStatus);
+      } else {
+        throw new Error("Failed to update status");
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setAlertMessage("Failed to update status.");
+    }
+  };
+
   if (!user) {
     return <div>Loading user information...</div>;
   }
@@ -162,6 +181,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout }) => {
             className="w-20 h-20 rounded-full"
           />
           <h1 className="text-xl font-bold mt-2">{user?.username}</h1>
+          <select
+            value={userStatus}
+            onChange={(e) => handleChangeStatus(e.target.value)}
+            className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="Active">Active</option>
+            <option value="Away">Away</option>
+            <option value="Offline">Offline</option>
+          </select>
         </div>
         <div className="text-right flex-1">
           <button
