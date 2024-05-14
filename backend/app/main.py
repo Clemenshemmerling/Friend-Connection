@@ -25,11 +25,10 @@ def hello_world():
 async def websocket_endpoint(websocket: WebSocket):
     connection_id = await manager.connect(websocket)
     try:
-        # Envía el ID de conexión al cliente
         await websocket.send_json({"message": "Connected", "connection_id": connection_id})
         while True:
             data = await websocket.receive_text()
-            await websocket.send_text("pong")  # Mantén la conexión activa
+            await websocket.send_text("pong")
     except WebSocketDisconnect as e:
         print(f"WebSocket disconnected with error code: {e.code}")
     finally:
